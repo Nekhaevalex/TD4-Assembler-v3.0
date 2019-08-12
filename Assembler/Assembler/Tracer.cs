@@ -97,8 +97,7 @@ namespace Assembler
             private point[][] map;
             private int size;
 
-            private static int debug_x_pos;
-            private static int debug_y_pos;
+
 
             private void ShiftAndFree(int row, int column)
             {
@@ -107,7 +106,7 @@ namespace Assembler
 
                 int nextColumn = column == size - 2 ? 0 : column + 1;
                 int nextRow = nextColumn == 0 ? row + 1 : row;
-                while (!((i <= row) && (j <= column)))
+                while (i * (size - 1) + j > (row * (size - 1) + column))
                 {
                     if (j != 0)
                     {
@@ -116,17 +115,19 @@ namespace Assembler
                             map[i][j] = (point)map[i][j - 1].Clone();
                             map[i][j].row = i;
                             map[i][j].column = j;
-                            if (map[i][j].owner != null)
-                                map[i][j].owner.setTarget(map[i][j]);
-                            if (map[i][j].target != null)
-                                map[i][j].target.setOwner(map[i][j]);
+                            if (map[i][j - 1].owner != null)
+                                map[i][j - 1].owner.setTarget(map[i][j]);
+                            if (map[i][j - 1].target != null)
+                                map[i][j - 1].target.setOwner(map[i][j]);
                             if (map[i][j].target != null)
                             {
                                 int targetRow = map[i][j].target.row;
                                 int targetColumn = map[i][j].target.column;
+                                DebugMap();
                                 if (((targetRow * (size - 1) + targetColumn) < (row * (size - 1) + column)) && map[i][j].target.isAnalyzed)
                                 {
                                     MoveHelperForward(map[i][j].target.row, map[i][j].target.column);
+                                    DebugMap();
                                 }
                             }
                             j--;
@@ -141,10 +142,10 @@ namespace Assembler
                             map[i][j] = (point)map[i][k].Clone();
                             map[i][j].row = i;
                             map[i][j].column = j;
-                            if (map[i][j].owner != null)
-                                map[i][j].owner.setTarget(map[i][j]);
-                            if (map[i][j].target != null)
-                                map[i][j].target.setOwner(map[i][j]);
+                            if (map[i][j - 1].owner != null)
+                                map[i][j - 1].owner.setTarget(map[i][j]);
+                            if (map[i][j - 1].target != null)
+                                map[i][j - 1].target.setOwner(map[i][j]);
                             if (map[i][j].target != null)
                             {
                                 int targetRow = map[i][j].target.row;
@@ -152,6 +153,7 @@ namespace Assembler
                                 if ((targetRow * (size - 1) + targetColumn) < (row * (size - 1) + column))
                                 {
                                     MoveHelperForward(map[i][j].target.row, map[i][j].target.column);
+                                    DebugMap();
                                 }
                             }
                             j = k;
@@ -162,10 +164,10 @@ namespace Assembler
                         map[i][j] = (point)map[i - 1][size - 2].Clone();
                         map[i][j].row = i;
                         map[i][j].column = j;
-                        if (map[i][j].owner != null)
-                            map[i][j].owner.setTarget(map[i][j]);
-                        if (map[i][j].target != null)
-                            map[i][j].target.setOwner(map[i][j]);
+                        if (map[i - 1][size-2].owner != null)
+                            map[i - 1][size - 2].owner.setTarget(map[i][j]);
+                        if (map[i - 1][size - 2].target != null)
+                            map[i - 1][size - 2].target.setOwner(map[i][j]);
                         if (map[i][j].target != null)
                         {
                             int targetRow = map[i][j].target.row;
@@ -182,6 +184,7 @@ namespace Assembler
                 map[row][column].meta = new Add("a", "0");
                 map[row][column].type = PointType.empty_nop;
                 map[row][column].isUserPlaced = false;
+                DebugMap();
             }
 
             private void MoveHelperForward(int row, int column)
@@ -189,27 +192,32 @@ namespace Assembler
                 if (column < size - 1)
                 {
                     point cache = (point)map[row][column].Clone();
+                    point helperTarget = map[row][column].target;
+                    point helperOwner = map[row][column].owner;
                     int nonStaticPointer = column + 1;
                     while (map[row][nonStaticPointer].isStatic)
                     {
                         nonStaticPointer++;
                     }
+                    point nonStaticTarget = map[row][nonStaticPointer].target;
+                    point nonStaticOwner = map[row][nonStaticPointer].owner;
                     if (nonStaticPointer < 15)
                     {
                         map[row][column] = (point)map[row][nonStaticPointer].Clone();
-                        map[row][nonStaticPointer] = cache;
                         map[row][column].row = row;
                         map[row][column].column = column;
+                        if (nonStaticOwner != null)
+                            nonStaticOwner.setTarget(map[row][column]);
+                        if (nonStaticTarget != null)
+                            nonStaticTarget.setOwner(map[row][column]);
+                        map[row][nonStaticPointer] = cache;
                         map[row][nonStaticPointer].row = row;
                         map[row][nonStaticPointer].column = nonStaticPointer;
-                        if (map[row][column].owner != null)
-                            map[row][column].owner.setTarget(map[row][column]);
-                        if (map[row][column].target != null)
-                            map[row][column].target.setOwner(map[row][column]);
-                        if (map[row][nonStaticPointer].owner != null)
-                            map[row][nonStaticPointer].owner.setTarget(map[row][nonStaticPointer]);
-                        if (map[row][nonStaticPointer].target != null)
-                            map[row][nonStaticPointer].target.setOwner(map[row][column]);
+                        if (helperOwner != null)
+                            helperOwner.setTarget(map[row][nonStaticPointer]);
+                        if (helperTarget != null)
+                            helperTarget.setOwner(map[row][column]);
+                        DebugMap();
                     }
                 }
             }
@@ -220,8 +228,6 @@ namespace Assembler
             private void Trace(int bx, int by, int ex, int ey)
             {
                 Utilities.Utilities.VerbouseOut("TRACER", "Tracing PC changers...");
-                debug_x_pos = Console.CursorLeft;
-                debug_y_pos = Console.CursorTop;
                 bool targetReached = false;
                 int stepDepth = 1;
                 map[bx][by].type = PointType.start;
@@ -267,7 +273,39 @@ namespace Assembler
                 ImplementPoints();
                 //Moving bridges
                 MoveBridges();
-                //Fix broken traces by restarting this trace
+            }
+
+            private void CheckTracks()
+            {
+                for (int i = 0; i < size; i++)
+                {
+                    for (int j = 0; j < size; j++)
+                    {
+                        if (map[i][j].type == PointType.boundary_point && map[i][j].owner == null)
+                        {
+                            point pointer = map[i][j];
+                            while (pointer.target != null)
+                            {
+                                //It's start point;
+                                if (pointer.target.row == pointer.row)
+                                {
+                                    //it's swi
+                                    pointer = pointer.target;
+                                }
+                                else if (pointer.target.column == pointer.column)
+                                {
+                                    //it's jmp
+                                    pointer = pointer.target;
+                                }
+                                else
+                                {
+                                    //bug happend
+                                    Utilities.Utilities.VerbouseOut("TRACER_DEBUGER", "Found bug at point " + pointer.row.ToString() + ", " + pointer.column.ToString(), ConsoleColor.Red);
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             private void MoveBridges()
@@ -278,8 +316,15 @@ namespace Assembler
                     {
                         if (map[i][j].type == PointType.bridge)
                         {
-                            if (map[i][j+1].type != PointType.old_fixed_point)
+                            if (j == 14)
+                            {
+                                map[i][j].type = PointType.empty;
+                                map[i][j].isAnalyzed = false;
+                            }
+                            else if (map[i][j + 1].type != PointType.old_fixed_point)
+                            {
                                 MoveHelperForward(i, j);
+                            }
                         }
                     }
                 }
@@ -287,10 +332,10 @@ namespace Assembler
 
             private void MakeAShiftForSaving(int row)
             {
-                ShiftAndFree(row, 13);
-                ShiftAndFree(row, 14);
-                map[row][13].type = PointType.empty;
-                map[row][14].type = PointType.empty;
+                ShiftAndFree(row, size - 3);
+                map[row][size - 3].type = PointType.empty;
+                ShiftAndFree(row, size - 2);
+                map[row][size - 2].type = PointType.empty;
             }
 
             private void ClearUnusedSpaces()
@@ -353,6 +398,8 @@ namespace Assembler
                                     map[row][column + 1].type = PointType.bridge;
                                     map[row][column + 1].isAnalyzed = true;
                                     map[row][column + 1].isUserPlaced = false;
+                                    map[row][column + 1].column = column + 1;
+                                    map[row][column + 1].row = row;
                                     DebugMap();
                                     Utilities.Utilities.VerbouseOut("TRACER_ANALYZER", "Allocating free space...");
                                     ShiftAndFree(row, column + 2);
@@ -367,10 +414,11 @@ namespace Assembler
                                     DebugMap();
                                     MoveHelperForward(map[row][column + 2].target.row, map[row][column + 2].target.column);
                                     DebugMap();
-                                    currentPoint.target = map[row][column + 2];
                                     map[row][column + 2].type = PointType.old_fixed_point;
                                     map[row][column + 2].isAnalyzed = true;
                                     map[row][column].isAnalyzed = true;
+                                    map[row][column + 2].column = column + 2;
+                                    map[row][column + 2].row = row;
 
                                 }
                                 if (Program.verboseMode)
@@ -422,12 +470,6 @@ namespace Assembler
                                     PrintMap();
                                 }
                                 map[row][column + 2].isAnalyzed = true;
-                                if (Program.verboseMode)
-                                {
-                                    System.Console.WriteLine();
-                                    PrintMap();
-                                }
-
                             }
                         }
                     }
@@ -705,6 +747,10 @@ namespace Assembler
             {
                 this.map = map;
                 this.size = size;
+                Utilities.Utilities.debug_x_pos = Console.CursorLeft;
+                Utilities.Utilities.debug_y_pos = Console.CursorTop;
+                Utilities.Utilities.last_debug_x = Console.CursorLeft;
+                Utilities.Utilities.last_debug_y = Console.CursorTop + size;
                 for (int i = map.Length - 1; i >= 0; i--)
                 {
                     for (int j = map[i].Length - 1; j >= 0; j--)
@@ -715,6 +761,8 @@ namespace Assembler
                         }
                     }
                 }
+                //Fix broken traces by restarting trace
+                CheckTracks();
             }
 
             private point GetLinkedPoint(point point)
@@ -738,7 +786,7 @@ namespace Assembler
 
             private void PrintMap()
             {
-                System.Console.SetCursorPosition(debug_x_pos, debug_y_pos);
+                System.Console.SetCursorPosition(Utilities.Utilities.debug_x_pos, Utilities.Utilities.debug_y_pos);
                 System.Console.Write(" /");
                 for (int i = -1; i < map.Length; i++)
                 {
@@ -834,6 +882,7 @@ namespace Assembler
                     }
                     System.Console.WriteLine();
                 }
+                Console.SetCursorPosition(Utilities.Utilities.last_debug_x, Utilities.Utilities.last_debug_y);
             }
         }
     }
