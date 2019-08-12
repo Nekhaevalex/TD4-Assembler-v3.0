@@ -120,6 +120,15 @@ namespace Assembler
                                 map[i][j].owner.setTarget(map[i][j]);
                             if (map[i][j].target != null)
                                 map[i][j].target.setOwner(map[i][j]);
+                            if (map[i][j].target != null)
+                            {
+                                int targetRow = map[i][j].target.row;
+                                int targetColumn = map[i][j].target.column;
+                                if (((targetRow * (size - 1) + targetColumn) < (row * (size - 1) + column)) && map[i][j].target.isAnalyzed)
+                                {
+                                    MoveHelperForward(map[i][j].target.row, map[i][j].target.column);
+                                }
+                            }
                             j--;
                         }
                         else
@@ -136,6 +145,15 @@ namespace Assembler
                                 map[i][j].owner.setTarget(map[i][j]);
                             if (map[i][j].target != null)
                                 map[i][j].target.setOwner(map[i][j]);
+                            if (map[i][j].target != null)
+                            {
+                                int targetRow = map[i][j].target.row;
+                                int targetColumn = map[i][j].target.column;
+                                if ((targetRow * (size - 1) + targetColumn) < (row * (size - 1) + column))
+                                {
+                                    MoveHelperForward(map[i][j].target.row, map[i][j].target.column);
+                                }
+                            }
                             j = k;
                         }
                     }
@@ -148,6 +166,15 @@ namespace Assembler
                             map[i][j].owner.setTarget(map[i][j]);
                         if (map[i][j].target != null)
                             map[i][j].target.setOwner(map[i][j]);
+                        if (map[i][j].target != null)
+                        {
+                            int targetRow = map[i][j].target.row;
+                            int targetColumn = map[i][j].target.column;
+                            if ((targetRow * (size - 1) + targetColumn) < (row * (size - 1) + column))
+                            {
+                                MoveHelperForward(map[i][j].target.row, map[i][j].target.column);
+                            }
+                        }
                         i--;
                         j = 14;
                     }
@@ -238,12 +265,32 @@ namespace Assembler
                 ClearUnusedAndLink();
                 //Implementing points
                 ImplementPoints();
+                //Moving bridges
+                MoveBridges();
+                //Fix broken traces by restarting this trace
+            }
+
+            private void MoveBridges()
+            {
+                for (int i = 0; i < size; i++)
+                {
+                    for (int j = 0; j < size; j++)
+                    {
+                        if (map[i][j].type == PointType.bridge)
+                        {
+                            if (map[i][j+1].type != PointType.old_fixed_point)
+                                MoveHelperForward(i, j);
+                        }
+                    }
+                }
             }
 
             private void MakeAShiftForSaving(int row)
             {
                 ShiftAndFree(row, 13);
                 ShiftAndFree(row, 14);
+                map[row][13].type = PointType.empty;
+                map[row][14].type = PointType.empty;
             }
 
             private void ClearUnusedSpaces()
@@ -425,7 +472,6 @@ namespace Assembler
                             {
                                 if (map[i - 1][j].type == PointType.fixed_point || map[i - 1][j].type == PointType.start || map[i - 1][j].type == PointType.end)
                                 {
-                                    PointType type = map[i][j - 1].type;
                                     if (j > 0)
                                     {
                                         if (map[i][j - 1].type == PointType.fixed_point || map[i][j - 1].type == PointType.old_fixed_point)
@@ -490,50 +536,61 @@ namespace Assembler
             {
                 while (map[x][y].type != PointType.start)
                 {
+                Start:
                     if (Program.verboseMode)
                     {
                         System.Console.WriteLine();
                         PrintMap();
                     }
-                    if (y < size - 1 && y >= 0 && x < size - 1 && x >= 0)
+                    if (y < size - 1)
                     {
-                        if ((map[x][y + 1].type == PointType.waypoint || map[x][y + 1].type == PointType.start) && map[x][y + 1].depth == stepDepth - 1)
+                        if ((map[x][y + 1].type == PointType.waypoint || map[x][y + 1].type == PointType.start) && map[x][y + 1].depth == stepDepth)
                         {
                             y += 1;
                             stepDepth--;
                             FixPoint(x, y, LastTraced);
                             if (map[x][y].type != PointType.start)
                                 LastTraced = map[x][y];
+                            goto Start;
                         }
-                        else if ((map[x][y - 1].type == PointType.waypoint || map[x][y - 1].type == PointType.start) && map[x][y - 1].depth == stepDepth - 1)
+                    }
+                    if (y > 0)
+                    {
+                        if ((map[x][y - 1].type == PointType.waypoint || map[x][y - 1].type == PointType.start) && map[x][y - 1].depth == stepDepth)
                         {
                             y -= 1;
                             stepDepth--;
                             FixPoint(x, y, LastTraced);
                             if (map[x][y].type != PointType.start)
                                 LastTraced = map[x][y];
+                            goto Start;
                         }
-                        else if ((map[x + 1][y].type == PointType.waypoint || map[x + 1][y].type == PointType.start) && map[x + 1][y].depth == stepDepth - 1)
+                    }
+                    if (x < size - 1)
+                    {
+                        if ((map[x + 1][y].type == PointType.waypoint || map[x + 1][y].type == PointType.start) && map[x + 1][y].depth == stepDepth)
                         {
                             x += 1;
                             stepDepth--;
                             FixPoint(x, y, LastTraced);
                             if (map[x][y].type != PointType.start)
                                 LastTraced = map[x][y];
+                            goto Start;
                         }
-                        else if ((map[x - 1][y].type == PointType.waypoint || map[x - 1][y].type == PointType.start) && map[x - 1][y].depth == stepDepth - 1)
+                    }
+                    if (x > 0)
+                    {
+                        if ((map[x - 1][y].type == PointType.waypoint || map[x - 1][y].type == PointType.start) && map[x - 1][y].depth == stepDepth)
                         {
                             x -= 1;
                             stepDepth--;
                             FixPoint(x, y, LastTraced);
                             if (map[x][y].type != PointType.start)
                                 LastTraced = map[x][y];
-                        }
-                        else
-                        {
-                            stepDepth++;
+                            goto Start;
                         }
                     }
+                    stepDepth--;
                 }
                 map[bx][by].setTarget(LastTraced);
                 map[bx][by].setOwner(null);
