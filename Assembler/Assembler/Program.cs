@@ -47,12 +47,12 @@ namespace Assembler
                     useTracer = useTracerKey.HasValue();
                     if (target.HasValue())
                     {
-                        if (target.Value() == "td4+")
+                        if (target.Value() == "td4e")
                         {
                             makeBinary = true;
                             eightBit = false;
                         }
-                        else if (target.Value() == "td4++")
+                        else if (target.Value() == "td4e8")
                         {
                             makeBinary = true;
                             eightBit = true;
@@ -61,7 +61,7 @@ namespace Assembler
                         {
                             makeBinary = false;
                             eightBit = false;
-                        } else if (target.Value() == "asm++")
+                        } else if (target.Value() == "asm8")
                         {
                             makeBinary = false;
                             eightBit = true;

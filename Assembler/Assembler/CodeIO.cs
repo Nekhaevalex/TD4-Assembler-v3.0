@@ -62,7 +62,10 @@ namespace Assembler
             Utilities.Utilities.VerbouseOut("ASSEMBLY WRITER", "Attempt to save into " + Program.outputFile + "...");
             try
             {
-                Tracer tracer = new Tracer(binary.GetMatrixStack());
+                if (Program.useTracer)
+                {
+                    Tracer tracer = new Tracer(binary.GetMatrixStack());
+                }
                 File.WriteAllBytes(Program.outputFile, binary.MakeBuild());
             }
             catch (IOException e)

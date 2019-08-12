@@ -10,7 +10,7 @@
 }
 
 //define string
-#macro db_s value address {
+#macro ds value address {
     //mapping value into str array
     #map value str
     #sumdef str.length address
