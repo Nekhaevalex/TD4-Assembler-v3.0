@@ -460,6 +460,7 @@ namespace Assembler
                                 program[pc].opcode.Page = i;
                                 program[pc].opcode.Word = j;
                                 binary[i][j] = program[pc].opcode;
+                                pc++;
                             }
                             else
                             {

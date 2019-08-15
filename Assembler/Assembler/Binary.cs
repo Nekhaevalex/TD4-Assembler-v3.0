@@ -13,7 +13,7 @@ namespace Assembler
             arrayStack = new IOpcode[stack.Length * stack.Length];
             for (int i = 0; i < matrixStack.Length; i++)
             {
-                for (int j = 0; j < matrixStack[i].Length; j++)
+                for (int j = 0; j < matrixStack.Length; j++)
                 {
                     arrayStack[i * stack.Length + j] = matrixStack[i][j];
                 }

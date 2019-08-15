@@ -65,6 +65,7 @@ namespace Assembler
                 if (Program.useTracer)
                 {
                     Tracer tracer = new Tracer(binary.GetMatrixStack());
+                    binary = tracer.MakeBinary();
                 }
                 File.WriteAllBytes(Program.outputFile, binary.MakeBuild());
             }

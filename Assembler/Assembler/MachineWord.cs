@@ -13,7 +13,12 @@
 
         public byte MachineCode4bit()
         {
-            return (byte)((operation << 4) & 0b11110000 + fastadd.toByte() & 0b00001111);
+            byte op = (byte)(operation << 4);
+            op = (byte)(op & 0b11110000);
+            byte fa = fastadd.toByte();
+            fa = (byte)(fa & 0b00001111);
+            op = (byte)(op + fa);
+            return op;
         }
 
         public int MachineCode8bit()

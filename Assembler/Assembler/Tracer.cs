@@ -73,6 +73,26 @@ namespace Assembler
             }
         }
 
+        internal Binary MakeBinary()
+        {
+            IOpcode[][] binary;
+            binary = new IOpcode[map.GetSize()][];
+            for (int i = 0; i < binary.Length; i++)
+            {
+                binary[i] = new IOpcode[map.GetSize()];
+            }
+            int size = map.GetSize();
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    binary[i][j] = map.Get(i,j).meta;
+                }
+                Console.WriteLine();
+            }
+            return new Binary(binary);
+        }
+
         private Map map;
 
         public Tracer(IOpcode[][] build)
@@ -97,8 +117,10 @@ namespace Assembler
             private point[][] map;
             private int size;
 
-
-
+            public int GetSize()
+            {
+                return size;
+            }
             private void ShiftAndFree(int row, int column)
             {
                 int i = size - 1;
@@ -106,6 +128,10 @@ namespace Assembler
 
                 int nextColumn = column == size - 2 ? 0 : column + 1;
                 int nextRow = nextColumn == 0 ? row + 1 : row;
+                if (row == 6 && column == 9)
+                {
+                    Utilities.Utilities.VerbouseOut("DEBUG", "Point reached");
+                }
                 while (i * (size - 1) + j > (row * (size - 1) + column))
                 {
                     if (j != 0)
@@ -164,7 +190,7 @@ namespace Assembler
                         map[i][j] = (point)map[i - 1][size - 2].Clone();
                         map[i][j].row = i;
                         map[i][j].column = j;
-                        if (map[i - 1][size-2].owner != null)
+                        if (map[i - 1][size - 2].owner != null)
                             map[i - 1][size - 2].owner.setTarget(map[i][j]);
                         if (map[i - 1][size - 2].target != null)
                             map[i - 1][size - 2].target.setOwner(map[i][j]);
@@ -187,36 +213,76 @@ namespace Assembler
                 DebugMap();
             }
 
+
+
             private void MoveHelperForward(int row, int column)
             {
                 if (column < size - 1)
                 {
-                    point cache = (point)map[row][column].Clone();
-                    point helperTarget = map[row][column].target;
-                    point helperOwner = map[row][column].owner;
                     int nonStaticPointer = column + 1;
                     while (map[row][nonStaticPointer].isStatic)
                     {
                         nonStaticPointer++;
                     }
-                    point nonStaticTarget = map[row][nonStaticPointer].target;
-                    point nonStaticOwner = map[row][nonStaticPointer].owner;
+                    point lst1 = map[row][column];
+                    point lst2 = map[row][nonStaticPointer];
+
+                    point cache = (point)map[row][column].Clone();
+
+                    map[row][column].depth = lst2.depth;
+                    map[row][column].isAnalyzed = lst2.isAnalyzed;
+                    map[row][column].isStatic = lst2.isStatic;
+                    map[row][column].meta = lst2.meta;
+                    map[row][column].type = lst2.type;
+
+                    map[row][nonStaticPointer].depth = cache.depth;
+                    map[row][nonStaticPointer].isAnalyzed = cache.isAnalyzed;
+                    map[row][nonStaticPointer].meta = cache.meta;
+                    map[row][nonStaticPointer].type = cache.type;
+
                     if (nonStaticPointer < 15)
                     {
-                        map[row][column] = (point)map[row][nonStaticPointer].Clone();
-                        map[row][column].row = row;
-                        map[row][column].column = column;
-                        if (nonStaticOwner != null)
-                            nonStaticOwner.setTarget(map[row][column]);
-                        if (nonStaticTarget != null)
-                            nonStaticTarget.setOwner(map[row][column]);
-                        map[row][nonStaticPointer] = cache;
-                        map[row][nonStaticPointer].row = row;
-                        map[row][nonStaticPointer].column = nonStaticPointer;
-                        if (helperOwner != null)
-                            helperOwner.setTarget(map[row][nonStaticPointer]);
-                        if (helperTarget != null)
-                            helperTarget.setOwner(map[row][column]);
+                        point prev1 = lst1.owner;
+                        point prev2 = lst2.owner;
+                        point next1 = lst1.target;
+                        point next2 = lst2.target;
+                        if (lst2 == next1)
+                        {
+                            lst2.setTarget(lst1);
+                            lst2.setOwner(prev1);
+                            lst1.setTarget(next2);
+                            lst1.setOwner(lst2);
+                            if (next2 != null)
+                                next2.setOwner(lst1);
+                            if (lst1.owner != null)
+                                prev1.setTarget(lst2);
+                        }
+                        else if (lst1 == next2)
+                        {
+                            lst1.setTarget(lst2);
+                            lst1.setOwner(prev2);
+                            lst2.setTarget(next1);
+                            lst2.setOwner(lst1);
+                            if (next1 != null)
+                                next1.setOwner(lst2);
+                            if (lst2.owner != null)
+                                prev2.setTarget(lst1);
+                        }
+                        else
+                        {
+                            if (lst1.target != null)
+                                prev1.setTarget(lst2);
+                            lst2.setTarget(next1);
+                            if (lst2.owner != null)
+                                prev2.setTarget(lst1);
+                            lst1.setTarget(next2);
+                            lst2.setOwner(prev1);
+                            if (next2 != null)
+                                next2.setOwner(lst1);
+                            lst1.setOwner(prev2);
+                            if (next1 != null)
+                                next1.setOwner(lst2);
+                        }
                         DebugMap();
                     }
                 }
@@ -269,14 +335,43 @@ namespace Assembler
                 ClearStraightLines();
                 //Clearing unused spaces && Linking (we see netpoints only)
                 ClearUnusedAndLink();
+                //Fix straitgh jumps with wrong ways
+                FindAndMakeSingleLineJumps();
                 //Implementing points
                 ImplementPoints();
                 //Moving bridges
                 MoveBridges();
             }
 
-            private void CheckTracks()
+            private void FindAndMakeSingleLineJumps()
             {
+                point pointer;
+                for (int i = 0; i < size; i++)
+                {
+                    for (int j = 0; j < size; j++)
+                    {
+                        if (map[i][j].type == PointType.boundary_point && map[i][j].owner == null)
+                        {
+                            pointer = map[i][j];
+                            int initialRow = pointer.row;
+                            while (pointer.target != null)
+                            {
+                                pointer = pointer.target;
+                            }
+                            if (initialRow == pointer.row)
+                            {
+                                point routeStart, routeEnd;
+                                RemoveAllWaypoints(pointer, out routeStart, out routeEnd);
+                                DebugMap();
+                            }
+                        }
+                    }
+                }
+            }
+
+            private bool CheckTracks()
+            {
+                bool everythingAlright = true;
                 for (int i = 0; i < size; i++)
                 {
                     for (int j = 0; j < size; j++)
@@ -301,10 +396,51 @@ namespace Assembler
                                 {
                                     //bug happend
                                     Utilities.Utilities.VerbouseOut("TRACER_DEBUGER", "Found bug at point " + pointer.row.ToString() + ", " + pointer.column.ToString(), ConsoleColor.Red);
+                                    Utilities.Utilities.VerbouseOut("TRACER_DEBUGER", "Resetting route and retracing", ConsoleColor.Red);
+                                    point routeStart, routeEnd;
+                                    RemoveAllWaypoints(pointer, out routeStart, out routeEnd);
+                                    routeStart.type = PointType.empty;
+                                    routeStart.isAnalyzed = false;
+                                    routeEnd.type = PointType.empty;
+                                    routeEnd.isAnalyzed = false;
+                                    everythingAlright = false;
+                                    routeStart.type = PointType.start;
+                                    routeEnd.type = PointType.end;
+                                    DebugMap();
+                                    Trace(routeStart.row, routeStart.column, routeEnd.row, routeEnd.column);
+                                    DebugMap();
+                                    return everythingAlright;
                                 }
                             }
                         }
                     }
+                }
+                return everythingAlright;
+            }
+
+            private void RemoveAllWaypoints(point pointer, out point routeStart, out point routeEnd)
+            {
+                routeStart = pointer;
+                routeEnd = pointer;
+                while (routeStart.owner != null)
+                {
+                    routeStart = routeStart.owner;
+                }
+                while (routeEnd.target != null)
+                {
+                    routeEnd = routeEnd.target;
+                }
+                point deleter = routeStart.target;
+                while (deleter != routeEnd)
+                {
+                    deleter.owner.setTarget(deleter.target);
+                    deleter.target.setOwner(deleter.owner);
+                    deleter.type = PointType.empty;
+                    deleter.isUserPlaced = false;
+                    deleter.meta = new Add("a", "0");
+                    map[deleter.row][deleter.column - 1].type = PointType.empty;
+                    map[deleter.row][deleter.column - 1].meta = new Add("a", "0");
+                    deleter = deleter.target;
                 }
             }
 
@@ -371,7 +507,7 @@ namespace Assembler
                             if (currentPoint.owner == null)
                             {
                                 //Its start point
-                                //If it's JMP, we can replace it with SWM:
+                                //If it's JMP, we can replace it with SWM sometimes:
                                 if (currentPoint.meta is Jmp && currentPoint.target.column == currentPoint.column)
                                 {
                                     currentPoint.isAnalyzed = true;
@@ -406,20 +542,28 @@ namespace Assembler
                                     Utilities.Utilities.VerbouseOut("TRACER_ANALYZER", "Done");
                                     DebugMap();
                                     Utilities.Utilities.VerbouseOut("TRACER_ANALYZER", "Making new helping point");
-                                    map[row][column + 2].setTarget(currentPoint.target);
-                                    currentPoint.target.setOwner(map[row][column + 2]);
-                                    map[row][column + 2].setOwner(currentPoint);
-                                    currentPoint.setTarget(map[row][column + 2]);
-                                    MoveHelperForward(map[row][column + 2].target.row, map[row][column + 2].target.column);
-                                    DebugMap();
-                                    MoveHelperForward(map[row][column + 2].target.row, map[row][column + 2].target.column);
-                                    DebugMap();
+                                    point temp = map[row][column + 2];
+                                    point p = currentPoint.target;
+                                    currentPoint.setTarget(temp);
+
+                                    //value
                                     map[row][column + 2].type = PointType.old_fixed_point;
                                     map[row][column + 2].isAnalyzed = true;
                                     map[row][column].isAnalyzed = true;
                                     map[row][column + 2].column = column + 2;
                                     map[row][column + 2].row = row;
 
+                                    temp.setTarget(p);
+                                    temp.setOwner(currentPoint);
+                                    if (p != null)
+                                    {
+                                        p.setOwner(temp);
+                                    }
+                                    DebugMap();
+                                    MoveHelperForward(map[row][column + 2].target.row, map[row][column + 2].target.column);
+                                    DebugMap();
+                                    MoveHelperForward(map[row][column + 2].target.row, map[row][column + 2].target.column);
+                                    DebugMap();
                                 }
                                 if (Program.verboseMode)
                                 {
@@ -552,11 +696,11 @@ namespace Assembler
                             point guyWhoWillBeKilled = map[i][j];
                             if (guyWhoWillBeKilled.owner != null && guyWhoWillBeKilled.target != null)
                             {
-                                (guyWhoWillBeKilled.target).owner = guyWhoWillBeKilled.owner;
+                                guyWhoWillBeKilled.target.owner = guyWhoWillBeKilled.owner;
                             }
                             if (guyWhoWillBeKilled.owner != null && guyWhoWillBeKilled.target != null)
                             {
-                                (guyWhoWillBeKilled.owner).target = guyWhoWillBeKilled.target;
+                                guyWhoWillBeKilled.owner.target = guyWhoWillBeKilled.target;
                             }
                             guyWhoWillBeKilled.target = null;
                             guyWhoWillBeKilled.owner = null;
@@ -755,14 +899,98 @@ namespace Assembler
                 {
                     for (int j = map[i].Length - 1; j >= 0; j--)
                     {
-                        if ((map[i][j].meta is Jmp || map[i][j].meta is Jnc) && map[i][j].isUserPlaced)
+                        if ((map[i][j].meta is Jmp || map[i][j].meta is Jnc) && map[i][j].isUserPlaced && !map[i][j].isAnalyzed)
                         {
                             Trace(i, j, GetLinkedPoint(map[i][j]).row, GetLinkedPoint(map[i][j]).column);
                         }
                     }
                 }
-                //Fix broken traces by restarting trace
-                CheckTracks();
+                while (!CheckTracks())
+                {
+                    Utilities.Utilities.VerbouseOut("BUG_FIXER", "Checking...", ConsoleColor.Yellow);
+                }
+                Utilities.Utilities.VerbouseOut("BUG_FIXER", "All errors fixed", ConsoleColor.Green);
+                //All bugs were fixed, now we can bake the map (fix all jumps and bridges)
+                BakeMap();
+                Utilities.Utilities.VerbouseOut("TRACER", "Tracing and baking done", ConsoleColor.Green);
+                DebugMap();
+                PrintAllTracks();
+            }
+
+            private void PrintAllTracks()
+            {
+                Utilities.Utilities.VerbouseOut("TRACER", "TRACKS LISTING", ConsoleColor.Cyan);
+                for (int i = 0; i<size; i++)
+                {
+                    for (int j = 0; j<size; j++)
+                    {
+                        if (map[i][j].type == PointType.boundary_point && map[i][j].owner == null)
+                        {
+                            point pointer = map[i][j].target;
+                            Utilities.Utilities.VerbouseOut("TRACER", "Initial point: "+i.ToString()+":"+j.ToString(), ConsoleColor.Cyan);
+                            while (pointer.target != null)
+                            {
+                                Utilities.Utilities.VerbouseOut("Helper point: " + pointer.row.ToString() + ":" + pointer.column.ToString(), ConsoleColor.Blue);
+                                pointer = pointer.target;
+                            }
+                            Utilities.Utilities.VerbouseOut("TRACER", "End point: " + pointer.row.ToString() + ":" + pointer.column.ToString(), ConsoleColor.DarkMagenta);
+                        }
+                    }
+                }
+            }
+
+            private void BakeMap()
+            {
+                for (int i = 0; i < size; i++)
+                {
+                    for (int j = 0; j < size; j++)
+                    {
+                        point bakingPoint = map[i][j];
+                        if (bakingPoint.type == PointType.bridge)
+                        {
+                            int empty_point = j + 1;
+                            while (map[i][empty_point].type != PointType.empty)
+                            {
+                                empty_point++;
+                            }
+                            Utilities.Utilities.VerbouseOut("BAKER", "Linking bridge to " + empty_point.ToString());
+                            bakingPoint.meta = new JmpI(empty_point);
+                        }
+                        else if (bakingPoint.type == PointType.old_fixed_point)
+                        {
+                            if (bakingPoint.target.row == bakingPoint.row)
+                                bakingPoint.meta = new JmpI(bakingPoint.target.column);
+                            else if (bakingPoint.target.column == bakingPoint.column)
+                                bakingPoint.meta = new Swi(bakingPoint.target.row);
+                            Utilities.Utilities.VerbouseOut("BAKER", "Making helping point");
+                        }
+                        else if (bakingPoint.type == PointType.boundary_point && bakingPoint.owner == null)
+                        {
+                            if (bakingPoint.meta is Jmp)
+                            {
+                                bakingPoint.meta = new JmpI(bakingPoint.target.column);
+                            }
+                            else if (bakingPoint.meta is Jnc)
+                            {
+                                if (bakingPoint.target.target == null)
+                                {
+                                    bakingPoint.meta = new JncI(bakingPoint.target.column);
+                                    Utilities.Utilities.VerbouseOut("BAKER", "Making strict JNC");
+                                }
+                                else
+                                {
+                                    bakingPoint.meta = new JncI(bakingPoint.target.column);
+                                    Utilities.Utilities.VerbouseOut("BAKER", "Making JNC to crosslayer bridge");
+                                }
+                            }
+                            else if (bakingPoint.meta is Swi)
+                            {
+                                bakingPoint.meta = new Swi(bakingPoint.target.row);
+                                Utilities.Utilities.VerbouseOut("BAKER", "Baking SWI");
+                            }
+                        }
+                    }
+                }
             }
 
             private point GetLinkedPoint(point point)

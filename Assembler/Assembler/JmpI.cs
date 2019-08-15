@@ -1,8 +1,8 @@
-﻿using AST;
+﻿using Opcode;
 
-namespace Opcode
+namespace Assembler
 {
-    class Jmp : IOpcode, PCChanger
+    internal class JmpI : IOpcode
     {
         public string Arg1 { get; set; }
         public string Name { get; set; }
@@ -12,7 +12,6 @@ namespace Opcode
         {
             get
             {
-                fastAdd = new FastAdd(link.GetNumber());
                 return fastAdd;
             }
             set
@@ -30,24 +29,11 @@ namespace Opcode
             {
             }
         }
-        private ASTNode link;
-        public ASTNode Link
-        {
-            get
-            {
-                return link;
-            }
-            set
-            {
-                link = value;
-                FastAdd = new FastAdd(Link.GetNumber());
-            }
-        }
 
         public int Page { get; set; }
         public int Word { get; set; }
 
-        public Jmp(string arg1)
+        public JmpI(string arg1)
         {
             Name = "jmp";
             if (FastAdd.IsFastAdd(arg1))
@@ -62,16 +48,10 @@ namespace Opcode
             }
 
         }
-        public Jmp(int arg1)
+        public JmpI(int arg1)
         {
             Name = "jmp";
             fastAdd = new FastAdd(arg1);
-        }
-
-        public Jmp(ASTNode target)
-        {
-            Name = "jmp";
-            Link = target;
         }
 
         public MachineWord toMachineCode()
@@ -81,7 +61,6 @@ namespace Opcode
 
         public override string ToString()
         {
-            FastAdd = new FastAdd(Link.GetNumber());
             return "jmp " + FastAdd.ToString();
         }
     }
