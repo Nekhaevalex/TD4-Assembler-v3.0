@@ -13,7 +13,8 @@
 #macro ds value address {
     //mapping value into str array
     #map value str
-    #sumdef str.length address
+    #define str.frame str.length
+    #sumdef str.frame address
     #fordef iterator1 address str.length 1
     mov b, str[iterator1]
     st iterator1
