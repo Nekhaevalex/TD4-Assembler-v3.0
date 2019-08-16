@@ -149,11 +149,9 @@ namespace Assembler
                             {
                                 int targetRow = map[i][j].target.row;
                                 int targetColumn = map[i][j].target.column;
-                                DebugMap();
                                 if (((targetRow * (size - 1) + targetColumn) < (row * (size - 1) + column)) && map[i][j].target.isAnalyzed)
                                 {
                                     MoveHelperForward(map[i][j].target.row, map[i][j].target.column);
-                                    DebugMap();
                                 }
                             }
                             j--;
@@ -179,7 +177,6 @@ namespace Assembler
                                 if ((targetRow * (size - 1) + targetColumn) < (row * (size - 1) + column))
                                 {
                                     MoveHelperForward(map[i][j].target.row, map[i][j].target.column);
-                                    DebugMap();
                                 }
                             }
                             j = k;
@@ -210,7 +207,6 @@ namespace Assembler
                 map[row][column].meta = new Add("a", "0");
                 map[row][column].type = PointType.empty_nop;
                 map[row][column].isUserPlaced = false;
-                DebugMap();
             }
 
 
@@ -283,7 +279,6 @@ namespace Assembler
                             if (next1 != null)
                                 next1.setOwner(lst2);
                         }
-                        DebugMap();
                     }
                 }
             }
@@ -299,29 +294,14 @@ namespace Assembler
                 map[bx][by].type = PointType.start;
                 map[bx][by].depth = 0;
                 map[ex][ey].type = PointType.end;
-                if (Program.verboseMode)
-                {
-                    System.Console.WriteLine();
-                    PrintMap();
-                }
                 //Preventing jumps off (sort of)
                 if (ey > 12)
                 {
                     MakeAShiftForSaving(ex);
-                    if (Program.verboseMode)
-                    {
-                        System.Console.WriteLine();
-                        PrintMap();
-                    }
                 }
                 if (by > 12)
                 {
                     MakeAShiftForSaving(bx);
-                    if (Program.verboseMode)
-                    {
-                        System.Console.WriteLine();
-                        PrintMap();
-                    }
                 }
                 //Pathfinding (we see numbers field)
                 int x, y;
@@ -362,7 +342,6 @@ namespace Assembler
                             {
                                 point routeStart, routeEnd;
                                 RemoveAllWaypoints(pointer, out routeStart, out routeEnd);
-                                DebugMap();
                             }
                         }
                     }
@@ -406,9 +385,7 @@ namespace Assembler
                                     everythingAlright = false;
                                     routeStart.type = PointType.start;
                                     routeEnd.type = PointType.end;
-                                    DebugMap();
                                     Trace(routeStart.row, routeStart.column, routeEnd.row, routeEnd.column);
-                                    DebugMap();
                                     return everythingAlright;
                                 }
                             }
@@ -487,11 +464,6 @@ namespace Assembler
                         }
                     }
                 }
-                if (Program.verboseMode)
-                {
-                    System.Console.WriteLine();
-                    PrintMap();
-                }
             }
 
             private void ImplementPoints()
@@ -527,7 +499,6 @@ namespace Assembler
                                     int column = currentPoint.column;
                                     Utilities.Utilities.VerbouseOut("TRACER_ANALYZER", "Allocating free space...");
                                     ShiftAndFree(row, column + 1);
-                                    DebugMap();
                                     Utilities.Utilities.VerbouseOut("TRACER_ANALYZER", "Done");
                                     Utilities.Utilities.VerbouseOut("TRACER_ANALYZER", "Making bridge in " + (column + 1).ToString() + ":" + row.ToString());
                                     map[row][column + 1].meta = new Jmp(column + 2);
@@ -536,11 +507,9 @@ namespace Assembler
                                     map[row][column + 1].isUserPlaced = false;
                                     map[row][column + 1].column = column + 1;
                                     map[row][column + 1].row = row;
-                                    DebugMap();
                                     Utilities.Utilities.VerbouseOut("TRACER_ANALYZER", "Allocating free space...");
                                     ShiftAndFree(row, column + 2);
                                     Utilities.Utilities.VerbouseOut("TRACER_ANALYZER", "Done");
-                                    DebugMap();
                                     Utilities.Utilities.VerbouseOut("TRACER_ANALYZER", "Making new helping point");
                                     point temp = map[row][column + 2];
                                     point p = currentPoint.target;
@@ -559,16 +528,8 @@ namespace Assembler
                                     {
                                         p.setOwner(temp);
                                     }
-                                    DebugMap();
                                     MoveHelperForward(map[row][column + 2].target.row, map[row][column + 2].target.column);
-                                    DebugMap();
                                     MoveHelperForward(map[row][column + 2].target.row, map[row][column + 2].target.column);
-                                    DebugMap();
-                                }
-                                if (Program.verboseMode)
-                                {
-                                    System.Console.WriteLine();
-                                    PrintMap();
                                 }
                             }
                             else if (currentPoint.target == null)
@@ -584,11 +545,6 @@ namespace Assembler
                                 int row = currentPoint.row;
                                 int column = currentPoint.column;
                                 ShiftAndFree(row, column + 1);
-                                if (Program.verboseMode)
-                                {
-                                    System.Console.WriteLine();
-                                    PrintMap();
-                                }
                                 //Make free point a waypoint
                                 map[row][column].type = PointType.empty;
                                 map[row][column + 1].type = PointType.old_fixed_point;
@@ -599,29 +555,13 @@ namespace Assembler
                                 map[row][column].owner = null;
                                 map[row][column].target = null;
                                 map[row][column].isAnalyzed = true;
-                                DebugMap();
                                 ShiftAndFree(row, column + 1);
-                                if (Program.verboseMode)
-                                {
-                                    System.Console.WriteLine();
-                                    PrintMap();
-                                }
                                 map[row][column + 1].type = PointType.bridge;
                                 map[row][column + 1].isAnalyzed = true;
-                                if (Program.verboseMode)
-                                {
-                                    System.Console.WriteLine();
-                                    PrintMap();
-                                }
                                 map[row][column + 2].isAnalyzed = true;
                             }
                         }
                     }
-                }
-                if (Program.verboseMode)
-                {
-                    System.Console.WriteLine();
-                    PrintMap();
                 }
             }
 
@@ -637,11 +577,6 @@ namespace Assembler
                             map[i][j].depth = 0;
                         }
                     }
-                }
-                if (Program.verboseMode)
-                {
-                    System.Console.WriteLine();
-                    PrintMap();
                 }
             }
 
@@ -711,11 +646,6 @@ namespace Assembler
                         }
                     }
                 }
-                if (Program.verboseMode)
-                {
-                    System.Console.WriteLine();
-                    PrintMap();
-                }
             }
 
             private void TracePath(int bx, int by, ref int stepDepth, ref int x, ref int y, ref point LastTraced)
@@ -723,11 +653,6 @@ namespace Assembler
                 while (map[x][y].type != PointType.start)
                 {
                 Start:
-                    if (Program.verboseMode)
-                    {
-                        System.Console.WriteLine();
-                        PrintMap();
-                    }
                     if (y < size - 1)
                     {
                         if ((map[x][y + 1].type == PointType.waypoint || map[x][y + 1].type == PointType.start) && map[x][y + 1].depth == stepDepth)
@@ -780,22 +705,12 @@ namespace Assembler
                 }
                 map[bx][by].setTarget(LastTraced);
                 map[bx][by].setOwner(null);
-                if (Program.verboseMode)
-                {
-                    System.Console.WriteLine();
-                    PrintMap();
-                }
             }
 
             private void FindPath(int ex, int ey, ref bool targetReached, ref int stepDepth, out int x, out int y)
             {
                 while (!targetReached)
                 {
-                    if (Program.verboseMode)
-                    {
-                        System.Console.WriteLine();
-                        PrintMap();
-                    }
                     for (int i = 0; i < size; i++)
                     {
                         for (int j = 0; j < size; j++)
@@ -870,11 +785,6 @@ namespace Assembler
                 x = ex;
                 y = ey;
                 stepDepth = map[x][y].depth;
-                if (Program.verboseMode)
-                {
-                    System.Console.WriteLine();
-                    PrintMap();
-                }
             }
 
             private void FixPoint(int x, int y, point LastTraced)
@@ -913,7 +823,6 @@ namespace Assembler
                 //All bugs were fixed, now we can bake the map (fix all jumps and bridges)
                 BakeMap();
                 Utilities.Utilities.VerbouseOut("TRACER", "Tracing and baking done", ConsoleColor.Green);
-                DebugMap();
                 PrintAllTracks();
             }
 
