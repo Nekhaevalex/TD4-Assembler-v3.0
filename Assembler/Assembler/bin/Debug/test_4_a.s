@@ -1,0 +1,6 @@
+IN A
+lab:
+ADD A 1
+MOV B A
+OUT B
+JMP lab

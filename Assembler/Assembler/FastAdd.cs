@@ -32,7 +32,7 @@ namespace Opcode
                         }
                     } else
                     {
-                        throw new Exception("Unknown base");
+                        throw new Exception("Unknown base: "+value);
                     }
                 }
             } else
@@ -53,14 +53,37 @@ namespace Opcode
 
         public static bool IsFastAdd(string value)
         {
-            if (value[0] == '\'' && value[value.Length - 1] == '\'' && value.Length == 3)
+            if (value.Length == 3)
             {
-                return true;
+                if (value[0] == '\'' && value[value.Length - 1] == '\'')
+                {
+                    return true;
+                }
             }
-            foreach (char c in value)
+            if (value.Length > 1)
             {
-                if ((c < '0' || c > '9') && (Char.ToLower(c) < 'a' || Char.ToLower(c) > 'f') && c != '-' && Char.ToLower(c) != 'x')
+                if (char.ToLower(value[1]) == 'x')
+                {
+                    if (value[0] == '0')
+                    {
+                        for (int i = 2; i<value.Length; i++)
+                        {
+                            char c = value[i];
+                            if (Char.ToLower(c) < '0' || Char.ToLower(c) > '9') {
+                                if (Char.ToLower(c) < 'a' || Char.ToLower(c) > 'f')
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                } else
+                {
                     return false;
+                }
+            } else if (Char.ToLower(value[0]) == 'a' || Char.ToLower(value[0]) == 'b')
+            {
+                return false;
             }
             return true;
         }

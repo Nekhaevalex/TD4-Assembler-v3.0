@@ -27,7 +27,7 @@
                 FastAdd = new FastAdd(arg2);
             } else
             {
-                Arg2 = arg2;
+                Arg2 = arg2.ToLower();
             }
         }
 
