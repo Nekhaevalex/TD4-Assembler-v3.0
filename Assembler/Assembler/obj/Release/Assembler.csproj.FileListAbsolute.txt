@@ -7,3 +7,4 @@ C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Releas
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Release\Assembler.csproj.CopyComplete
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Release\Assembler.exe
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Release\Assembler.pdb
+C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Release\Assembler.csprojAssemblyReference.cache

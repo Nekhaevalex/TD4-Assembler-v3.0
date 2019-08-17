@@ -27,3 +27,4 @@ C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\Assembler.csproj.CopyComplete
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\Assembler.exe
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\Assembler.pdb
+C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\Assembler.csprojAssemblyReference.cache

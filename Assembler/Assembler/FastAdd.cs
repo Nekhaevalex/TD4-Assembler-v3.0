@@ -59,7 +59,7 @@ namespace Opcode
             }
             foreach (char c in value)
             {
-                if ((c < '0' || c > '9') && c != '-')
+                if ((c < '0' || c > '9') && (Char.ToLower(c) < 'a' || Char.ToLower(c) > 'f') && c != '-' && Char.ToLower(c) != 'x')
                     return false;
             }
             return true;
