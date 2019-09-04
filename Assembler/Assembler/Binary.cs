@@ -49,7 +49,9 @@ namespace Assembler
             byte[] build;
             if (Program.eightBit)
             {
-                build = new byte[arrayStack.Length * 3];
+                bool startOfByte = true;
+                int currentByte = 0;
+                build = new byte[arrayStack.Length * 2];
                 for (int i = 0; i < arrayStack.Length; i++)
                 {
                     int line;
@@ -61,9 +63,23 @@ namespace Assembler
                     {
                         line = new Add("a", "0").toMachineCode().MachineCode8bit();
                     }
-                    build[i * 3] = (byte)((line & 0b111100000000) >> 8);
-                    build[i * 3 + 1] = (byte)((line & 0b11110000) >> 4);
-                    build[i * 3 + 2] = (byte)((line & 0b1111));
+                    if (startOfByte)
+                    {
+                        build[currentByte] = (byte)((line & 0b111100000000) >> 4);
+                        build[currentByte] = (byte)(build[currentByte] | ((line & 0b11110000) >> 4));
+                        currentByte++;
+                        build[currentByte] = (byte)((line & 0b1111) << 4);
+                        startOfByte = !startOfByte;
+                    }
+                    else
+                    {
+                        build[currentByte] = (byte)(build[currentByte] | (byte)((line & 0b111100000000) >> 8));
+                        currentByte++;
+                        build[currentByte] = (byte)(line & 0b11110000);
+                        build[currentByte] = (byte)(build[currentByte] | (byte)(line & 0b1111));
+                        currentByte++;
+                        startOfByte = !startOfByte;
+                    }
                 }
             }
             else
@@ -77,7 +93,7 @@ namespace Assembler
                     }
                     else
                     {
-                        build[i] = new Add("a","0").toMachineCode().MachineCode4bit();
+                        build[i] = new Add("a", "0").toMachineCode().MachineCode4bit();
                     }
                 }
             }
