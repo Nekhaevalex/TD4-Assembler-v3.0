@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Assembler;
+using System;
 using System.Text;
-using Assembler;
-using System.Data;
 
 namespace Opcode
 {
@@ -16,13 +15,15 @@ namespace Opcode
         {
             if (value.Length > 2)
             {
-                if (value[1] == 'x')
+                if (value[1] == 'x' && value[0] != '\'')
                 {
                     this.value = Convert.ToUInt16(value, 16) & 0b11111111;
-                } else if (value[1] == 'b')
+                }
+                else if (value[1] == 'b' && value[0] != '\'')
                 {
                     this.value = Convert.ToUInt16(value, 2) & 0b11111111;
-                } else
+                }
+                else
                 {
                     if (Program.eightBit)
                     {
@@ -30,12 +31,14 @@ namespace Opcode
                         {
                             this.value = Encoding.ASCII.GetBytes(value)[1];
                         }
-                    } else
+                    }
+                    else
                     {
-                        throw new Exception("Unknown base: "+value);
+                        throw new Exception("Unknown base: " + value);
                     }
                 }
-            } else
+            }
+            else
             {
                 this.value = Convert.ToUInt16(value, 10) & 0b11111111;
             }
@@ -44,7 +47,7 @@ namespace Opcode
                 this.value = ~this.value;
             }
         }
-        public FastAdd (int value)
+        public FastAdd(int value)
         {
             this.value = value;
         }
@@ -66,10 +69,11 @@ namespace Opcode
                 {
                     if (value[0] == '0')
                     {
-                        for (int i = 2; i<value.Length; i++)
+                        for (int i = 2; i < value.Length; i++)
                         {
                             char c = value[i];
-                            if (Char.ToLower(c) < '0' || Char.ToLower(c) > '9') {
+                            if (Char.ToLower(c) < '0' || Char.ToLower(c) > '9')
+                            {
                                 if (Char.ToLower(c) < 'a' || Char.ToLower(c) > 'f')
                                 {
                                     return false;
@@ -77,11 +81,21 @@ namespace Opcode
                             }
                         }
                     }
-                } else
-                {
-                    return false;
                 }
-            } else if (Char.ToLower(value[0]) == 'a' || Char.ToLower(value[0]) == 'b')
+                else
+                {
+                    for (int i = 0; i < value.Length; i++)
+                    {
+                        char c = value[i];
+                        if (Char.ToLower(c) < '0' || Char.ToLower(c) > '9')
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+            else if (Char.ToLower(value[0]) == 'a' || Char.ToLower(value[0]) == 'b')
             {
                 return false;
             }

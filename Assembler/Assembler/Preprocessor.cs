@@ -24,6 +24,11 @@ namespace Assembler
         Dictionary<string, Pext> pexts = new Dictionary<string, Pext>();
         readonly Dictionary<string, string> definitions = new Dictionary<string, string>();
 
+        public int CountMacroses()
+        {
+            return imports.Count + pexts.Count;
+        }
+
         public Preprocessor(ArrayList importsList)
         {
             Utilities.Utilities.VerbouseOut("PREPROCESSOR", "Reading macroses list");
@@ -115,6 +120,14 @@ namespace Assembler
                         int oldVal = FastAdd.IsFastAdd(val) ? int.Parse(val) : new FastAdd(definitions[val]).toInt();
                         int toAdd = FastAdd.IsFastAdd(addval) ? int.Parse(addval) : new FastAdd(definitions[addval]).toInt();
                         definitions[val] = (oldVal + toAdd).ToString();
+                    }
+                    else if (text[i][0] == "#resdef")
+                    {
+                        string val = text[i][1];
+                        string resval = text[i][2];
+                        int oldVal = FastAdd.IsFastAdd(val) ? int.Parse(val) : new FastAdd(definitions[val]).toInt();
+                        int toSub = FastAdd.IsFastAdd(resval) ? int.Parse(resval) : new FastAdd(definitions[resval]).toInt();
+                        definitions[val] = (oldVal - toSub).ToString();
                     }
                     else if (text[i][0] == "#undef")
                     {

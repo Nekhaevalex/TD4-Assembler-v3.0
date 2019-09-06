@@ -27,10 +27,11 @@
 }
 
 //define byte
-#macro dbx value address {
+#macro db value address {
     mov b, value
     st address
 }
+
 
 #macro out_addr address length {
     #define leng_out length

@@ -39,19 +39,21 @@ namespace Assembler
             //Catching imports
             Utilities.Utilities.VerbouseOut("Importing");
             importManager = new Preprocessor(imports);
-
             //Calling preprocessor
             Utilities.Utilities.VerbouseOut("PREPROCESSOR", "Inserting macroses...");
-            parsed = InsertAllMacro(parsed);
+            for (int i = 0; i<importManager.CountMacroses(); i++)
+            {
+                parsed = InsertAllMacro(parsed);
+            }
             Utilities.Utilities.VerbouseOut("PREPROCESSOR", "Updated code: ");
             if (Program.verboseMode)
             {
-                for (int i = 0; i < parsed.Length; i++)
+                for (int j = 0; j < parsed.Length; j++)
                 {
-                    Console.Write(i + ":\t");
-                    for (int j = 0; j < parsed[i].Length; j++)
+                    Console.Write(j + ":\t");
+                    for (int k = 0; k < parsed[j].Length; k++)
                     {
-                        Console.Write(parsed[i][j] + " ");
+                        Console.Write(parsed[j][k] + " ");
                     }
                     Console.WriteLine();
                 }
@@ -87,7 +89,10 @@ namespace Assembler
                 }
                 else if (opcode == "in")
                 {
-                    program.Add(new In(code[i].code[1]));
+                    if (code[i].code.Length == 2)
+                        program.Add(new In(code[i].code[1]));
+                    else if (code[i].code.Length > 2)
+                        program.Add(new In(code[i].code[1], code[i].code[2]));
                 }
                 else if (opcode == "jmp")
                 {
@@ -114,7 +119,10 @@ namespace Assembler
                 }
                 else if (opcode == "out")
                 {
-                    program.Add(new Out(code[i].code[1]));
+                    if (code[i].code.Length == 2)
+                        program.Add(new Out(code[i].code[1]));
+                    else if (code[i].code.Length > 2)
+                        program.Add(new Out(code[i].code[1], code[i].code[2]));
                 }
                 else if (opcode == "st")
                 {
