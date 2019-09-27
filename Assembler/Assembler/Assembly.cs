@@ -320,6 +320,10 @@ namespace Assembler
                 {
                     parsed[i] = null;
                 }
+                else if (parsed[i][0] == "#resdef")
+                {
+                    parsed[i] = null;
+                }
                 else if (parsed[i][0] == "#map")
                 {
                     parsed[i] = null;

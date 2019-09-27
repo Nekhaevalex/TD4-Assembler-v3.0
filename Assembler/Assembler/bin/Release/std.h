@@ -6,8 +6,17 @@
 //missing HLT opcode
 #macro hlt {
     nop
-    hlt_label:
+hlt_label:
     jmp hlt_label
+}
+
+#macro gqt operand label {
+    #define addit 255
+    #resdef addit operand
+    add a, addit
+    jnc label
+    #undef full
+    #undef addit
 }
 
 //define string

@@ -32,6 +32,7 @@
     #resdef malloc_system_pointer temp
     mov b, malloc_system_pointer
     st 0
+    #undef temp
 }
 
 #macro memcpy src dst length {

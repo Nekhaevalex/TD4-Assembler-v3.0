@@ -30,21 +30,33 @@
 }
 
 #macro help {
-    print "h-help"
+    print "1-help"
     out 10
-    print "r-run"
+    print "2-run"
     out 10
-    print "b-reboot"
+    print "3-reboot"
     out 10
-    print "s-shutdown"
+    print ">=4-shutdown"
     out 10
 }
 
-#macro interpreter h_label r_label b_label s_label{
+#macro interpreter h_label r_label b_label s_label {
+    mov a, 0
+    mov b, 0
     strt_wrt
-    getc
-    mov b, a -48
-    
+    getc selected
+    ld selected
+    mov a, b -48
+    nop
+    mov b, a
+    gqt 4 s_label
+    mov a, b
+    gqt 3 b_label
+    mov a, b
+    gqt 2 r_label
+    mov a, b
+    gqt 1 h_label
+    #undef selected
 }
 
 #macro main {
@@ -55,11 +67,15 @@ cmd:
     interpreter help_label run_label boot_label shut_label
 help_label:
     help
+    jmp cmd
 run_label:
     rp SELECTED_PROGRAM_PAGE cmd
+    jmp cmd
 boot_label:
+    nop
     reboot init
 shut_label:
+    free SELECTED_PROGRAM_PAGE
     sd
     #undef SELECTED_PROGRAM_PAGE
 }

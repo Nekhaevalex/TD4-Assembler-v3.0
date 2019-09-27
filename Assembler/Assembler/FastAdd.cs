@@ -40,7 +40,7 @@ namespace Opcode
             }
             else
             {
-                this.value = Convert.ToUInt16(value, 10) & 0b11111111;
+                this.value = Convert.ToInt16(value, 10) & 0b11111111;
             }
             if (this.value < 0)
             {

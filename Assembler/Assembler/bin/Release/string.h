@@ -22,8 +22,9 @@
 }
 
 #macro getc ptr_ret {
-    malloc ptr 1
+    malloc ptr_ret 1
 scan:
+    mov b, 0
     in b
     mov a, b
     add a, 255
