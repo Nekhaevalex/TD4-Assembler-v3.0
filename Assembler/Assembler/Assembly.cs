@@ -78,6 +78,21 @@ namespace Assembler
             Utilities.Utilities.VerbouseOut("Parsing labels...");
             CodeLine[] code = LabelCatcher(parsed);
             //Converting code to object form
+
+            Utilities.Utilities.VerbouseOut("PREPROCESSOR", "Cleared code: ");
+            if (Program.verboseMode)
+            {
+                for (int j = 0; j < parsed.Length; j++)
+                {
+                    Console.Write(j + ":\t");
+                    for (int k = 0; k < parsed[j].Length; k++)
+                    {
+                        Console.Write(parsed[j][k] + " ");
+                    }
+                    Console.WriteLine();
+                }
+            }
+
             Utilities.Utilities.VerbouseOut("Converting code to object form");
             for (int i = 0; i < code.Length; i++)
             {
@@ -316,6 +331,10 @@ namespace Assembler
                 {
                     parsed[i] = null;
                 }
+                else if (parsed[i][0] == "#message")
+                {
+                    parsed[i] = null;
+                }
                 else if (parsed[i][0] == "#sumdef")
                 {
                     parsed[i] = null;
@@ -329,6 +348,34 @@ namespace Assembler
                     parsed[i] = null;
                 }
                 else if (parsed[i][0] == "#endfor")
+                {
+                    parsed[i] = null;
+                }
+                else if (parsed[i][0] == "#ifdef")
+                {
+                    parsed[i] = null;
+                }
+                else if (parsed[i][0] == "#ifndef")
+                {
+                    parsed[i] = null;
+                }
+                else if (parsed[i][0] == "#else")
+                {
+                    parsed[i] = null;
+                }
+                else if (parsed[i][0] == "#pragma")
+                {
+                    parsed[i] = null;
+                }
+                else if (parsed[i][0] == "#error")
+                {
+                    parsed[i] = null;
+                }
+                else if (parsed[i][0] == "#line")
+                {
+                    parsed[i] = null;
+                }
+                else if (parsed[i][0] == "#endif")
                 {
                     parsed[i] = null;
                 }
@@ -382,7 +429,7 @@ namespace Assembler
             return imports;
         }
 
-        private static string[][] SplitCode(string[] lines)
+        public static string[][] SplitCode(string[] lines)
         {
             string[][] parsed;
             var parsedLines = new List<string[]>();

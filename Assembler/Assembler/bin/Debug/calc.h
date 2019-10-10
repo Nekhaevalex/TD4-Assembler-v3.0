@@ -1,30 +1,56 @@
-#import std.h
+#macro define_machine {
+    #pragma DEF_SYS
+    #pragma CONFIG
+
+    #ifndef NO_OPT
+    #pragma NO_OPT
+    #endif
+
+    #ifndef NO_TRACE
+    #pragma NO_TRACE
+    #endif 
+    
+    #message ===BUILD_PARAMS===
+    #ifndef 8_BIT
+    #message TINY_NO_OUTPUT_BUILD
+    #else
+    #message RICH_TEXT_OS
+    #endif
+
+    #ifdef config.ALU
+    #message ALU_AVALIABLE
+    init_pext alu.pext config.ALU
+    #endif
+
+    #ifdef config.IO
+    #message IO_ROUTER_AVALIABLE
+    init_io config.IO
+    add_static_device TTY config.IO.TTY1
+    #define stdout TTY
+    #define stdin TTY
+    #endif
+
+    #ifdef config.MULTICORE
+    #message MULTICORE_TD4
+    #pext mcl.pext config.MCL
+    #endif
+}
 
 #macro greetings {
-    #define HELLO_WORLD_STRING_ADDRESS 0x0
-    #define str "TD4E8_OS"
-    db_s str HELLO_WORLD_STRING_ADDRESS HEL_LENGTH
-    out_addr HELLO_WORLD_STRING_ADDRESS HEL_LENGTH
-    #undef str
-    #undef HEL_LENGTH
-    #undef HELLO_WORLD_STRING_ADDRESS
+    #ifdef 8_BIT
+    print "TD4E8_OS"
+    #endif
     out 10
 }
 
-
-//Commands:
-//  r - run program from page n
-//  s - shut down
-//  h - help
-//  b - boot again (reboot)
-
 #macro strt_wrt {
-    out 10
     out '>'
 }
 
 #macro rp selected_val_addr caller {
-    
+    #ifdef 8_BIT
+    print "page_to_load:"
+    #endif
     //Return
     jmp caller
 }
@@ -38,35 +64,59 @@
 }
 
 #macro help {
-    #define HELP_STR  0x8
-    #define help_str "h|r|b|s"
-    db_s help_str HELP_STR HELP_STR_LEN
-    out_addr HELP_STR help_str.length
-    #undef help_str
-    #undef help_str.length
-    #undef HELP_STR
-    #undef HELP_STR_LEN
+    #ifdef 8_BIT
+    print "1-help"
+    out 10
+    print "2-run"
+    out 10
+    print "3-reboot"
+    out 10
+    print ">=4-shutdown"
+    out 10
+    #else
+    nop
+    #endif
 }
 
-#macro interpreter h_label r_label b_label s_label{
+#macro interpreter h_label r_label b_label s_label {
+    mov a, 0
+    mov b, 0
+    #ifdef 8_BIT
     strt_wrt
-
+    #endif
+    getc selected
+    ld selected
+    mov a, b -48
+    nop
+    mov b, a
+    gqt 4 s_label
+    mov a, b
+    gqt 3 b_label
+    mov a, b
+    gqt 2 r_label
+    mov a, b
+    gqt 1 h_label
+    #undef selected
 }
 
 #macro main {
+    #message BUILDING_CORE...
+    define_machine
 init:
-    #define SELECTED_PROGRAM_PAGE 0x10
     db 0 SELECTED_PROGRAM_PAGE
     greetings
 cmd:
     interpreter help_label run_label boot_label shut_label
 help_label:
     help
+    jmp cmd
 run_label:
     rp SELECTED_PROGRAM_PAGE cmd
 boot_label:
+    nop
     reboot init
 shut_label:
+    free SELECTED_PROGRAM_PAGE
     sd
     #undef SELECTED_PROGRAM_PAGE
 }

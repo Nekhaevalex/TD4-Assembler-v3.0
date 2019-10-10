@@ -5,9 +5,25 @@
 
 //missing HLT opcode
 #macro hlt {
+#ifndef _HLT_
     nop
-    hlt_label:
+    #define _HLT_ 0
+hlt_label:
+#endif
     jmp hlt_label
+}
+
+#macro gqt operand label {
+    #ifdef 8_BIT
+    #define addit 255
+    #else
+    #define addit 15
+    #endif
+    #resdef addit operand
+    add a, addit
+    jnc label
+    #undef full
+    #undef addit
 }
 
 //define string
@@ -27,11 +43,10 @@
 }
 
 //define byte
-#macro db value address {
+#macro dbx value address {
     mov b, value
     st address
 }
-
 
 #macro out_addr address length {
     #define leng_out length

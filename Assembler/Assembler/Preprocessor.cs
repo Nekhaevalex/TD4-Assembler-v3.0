@@ -113,6 +113,183 @@ namespace Assembler
                         AddDefinition(text[i][1], text[i][2]);
                         Utilities.Utilities.VerbouseOut("\tDefined: " + text[i][1] + " = " + text[i][2], ConsoleColor.Green);
                     }
+                    else if (text[i][0] == "#ifdef")
+                    {
+                        string testval = text[i][1];
+                        int cacheIter = i;
+                        if (definitions.ContainsKey(testval))
+                        {
+                            text[i] = null;
+                            i++;
+                            while (text[i][0] != "#endif" && text[i][0] != "#else")
+                            {
+                                i++;
+                            }
+                            if (text[i][0] == "#else")
+                            {
+                                text[i] = null;
+                                i++;
+                                while (text[i][0] != "#endif")
+                                {
+                                    text[i] = null;
+                                    i++;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            text[i] = null;
+                            i++;
+                            while (text[i][0] != "#endif" && text[i][0] != "#else")
+                            {
+                                text[i] = null;
+                                i++;
+                            }
+                            if (text[i][0] == "#else")
+                            {
+                                text[i] = null;
+                                i++;
+                                while (text[i][0] != "#endif")
+                                {
+                                    i++;
+                                }
+                            }
+                        }
+                        i = cacheIter;
+                    }
+                    else if (text[i][0] == "#ifndef")
+                    {
+                        string testval = text[i][1];
+                        int cacheIter = i;
+                        if (!definitions.ContainsKey(testval))
+                        {
+                            text[i] = null;
+                            i++;
+                            while (text[i][0] != "#endif" && text[i][0] != "#else")
+                            {
+                                i++;
+                            }
+                            if (text[i][0] == "#else")
+                            {
+                                text[i] = null;
+                                i++;
+                                while (text[i][0] != "#endif")
+                                {
+                                    text[i] = null;
+                                    i++;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            text[i] = null;
+                            i++;
+                            while (text[i][0] != "#endif" && text[i][0] != "#else")
+                            {
+                                text[i] = null;
+                                i++;
+                            }
+                            if (text[i][0] == "#else")
+                            {
+                                text[i] = null;
+                                i++;
+                                while (text[i][0] != "#endif")
+                                {
+                                    i++;
+                                }
+                            }
+                        }
+                        i = cacheIter;
+                    }
+                    else if (text[i][0] == "#line")
+                    {
+                        int stringNum = int.Parse(text[i][1]);
+                        string filename = text[i][2].Substring(1, text[i][2].Length - 2);
+                        text[i] = Assembly.SplitCode(CodeIO.LoadFile(filename))[stringNum];
+                    }
+                    else if (text[i][0] == "#error")
+                    {
+                        Utilities.Utilities.Error("COMPILATION_WORKFLOW", text[i][1]);
+                        Environment.Exit(1);
+                    }
+                    else if (text[i][0] == "#message")
+                    {
+                        Utilities.Utilities.Message(text[i][1]);
+                    }
+                    else if (text[i][0] == "#pragma")
+                    {
+                        switch (text[i][1])
+                        {
+                            case "8_BIT":
+                                AddDefinition(text[i][1], "TRUE");
+                                Program.eightBit = true;
+                                break;
+                            case "NO_OPT":
+                                AddDefinition(text[i][1], "TRUE");
+                                Program.optimize = false;
+                                break;
+                            case "4_BIT":
+                                AddDefinition(text[i][1], "TRUE");
+                                Program.eightBit = false;
+                                break;
+                            case "USE_TRACE":
+                                AddDefinition(text[i][1], "TRUE");
+                                Program.useTracer = true;
+                                break;
+                            case "NO_TRACE":
+                                AddDefinition(text[i][1], "TRUE");
+                                Program.useTracer = false;
+                                break;
+                            case "CONFIG":
+                                if (!Program.configExists)
+                                {
+                                    Utilities.Utilities.Error("PREPROCESSOR", "Configuration file was not specified.");
+                                }
+                                AddDefinition("HAS_CONFIG", "TRUE");
+                                for (int j = 0; j < Program.config.Length; j++)
+                                {
+                                    AddDefinition("config." + Program.config[j][0], Program.config[j][1]);
+                                }
+                                break;
+                            case "UNDEF_ALL":
+                                definitions.Clear();
+                                break;
+                            case "DEF_SYS":
+                                if (Program.eightBit)
+                                {
+                                    AddDefinition("8_BIT", "TRUE");
+                                }
+                                else
+                                {
+                                    AddDefinition("4_BIT", "TRUE");
+                                }
+                                if (Program.makeBinary)
+                                {
+                                    AddDefinition("BINARY", "TRUE");
+                                }
+                                else
+                                {
+                                    AddDefinition("TEXT", "TRUE");
+                                }
+                                if (Program.optimize)
+                                {
+                                    AddDefinition("OPTIMIZE", "TRUE");
+                                }
+                                else
+                                {
+                                    AddDefinition("NO_OPT", "TRUE");
+                                }
+                                if (Program.useTracer)
+                                {
+                                    AddDefinition("USE_TRACE", "TRUE");
+                                }
+                                else
+                                {
+                                    AddDefinition("NO_TRACE", "TRUE");
+                                }
+                                break;
+                        }
+                    }
                     else if (text[i][0] == "#sumdef")
                     {
                         string val = text[i][1];
@@ -120,6 +297,7 @@ namespace Assembler
                         int oldVal = FastAdd.IsFastAdd(val) ? int.Parse(val) : new FastAdd(definitions[val]).toInt();
                         int toAdd = FastAdd.IsFastAdd(addval) ? int.Parse(addval) : new FastAdd(definitions[addval]).toInt();
                         definitions[val] = (oldVal + toAdd).ToString();
+                        Utilities.Utilities.VerbouseOut("\tRedefined: " + text[i][1] + ": " + (oldVal + toAdd).ToString(), ConsoleColor.Yellow);
                     }
                     else if (text[i][0] == "#resdef")
                     {
@@ -128,6 +306,7 @@ namespace Assembler
                         int oldVal = FastAdd.IsFastAdd(val) ? int.Parse(val) : new FastAdd(definitions[val]).toInt();
                         int toSub = FastAdd.IsFastAdd(resval) ? int.Parse(resval) : new FastAdd(definitions[resval]).toInt();
                         definitions[val] = (oldVal - toSub).ToString();
+                        Utilities.Utilities.VerbouseOut("\tRedefined: " + text[i][1] + ": " + (oldVal - toSub).ToString(), ConsoleColor.Yellow);
                     }
                     else if (text[i][0] == "#undef")
                     {
@@ -191,12 +370,12 @@ namespace Assembler
             {
                 if (definitions.Keys.Count > 0)
                 {
-                    Utilities.Utilities.VerbouseOut("PREPROCESSOR", "WARNING: NOT ALL DEFINITIONS WERE UNDEFINED", ConsoleColor.Magenta);
+                    Utilities.Utilities.Warning("PREPROCESSOR", "WARNING: NOT ALL DEFINITIONS WERE UNDEFINED");
                     foreach (string s in definitions.Keys)
                     {
                         Console.WriteLine("\t{0}\t:\t{1}", s, definitions[s]);
                     }
-                    Utilities.Utilities.VerbouseOut("Undefined variables may cause assembly errors", ConsoleColor.Magenta);
+                    Utilities.Utilities.Warning("PREPROCESSOR", "Undefined variables may cause assembly errors");
                 }
             }
             return text;

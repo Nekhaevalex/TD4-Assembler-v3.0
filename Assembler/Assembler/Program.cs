@@ -13,6 +13,8 @@ namespace Assembler
         public static bool makeBinary = true;
         public static bool eightBit = false;
         public static bool useTracer = false;
+        public static string[][] config;
+        public static bool configExists = false;
         static void Main(string[] args)
         {
             CommandLineApplication commandLine = new CommandLineApplication(throwOnUnexpectedArg: false)
@@ -32,6 +34,7 @@ namespace Assembler
             CommandOption verbose = commandLine.Option("-v | --Verbose", "Verbose mode", CommandOptionType.NoValue);
             CommandOption useTracerKey = commandLine.Option("-T | --Tracer", "Use code tracer", CommandOptionType.NoValue);
             CommandOption optimization = commandLine.Option("-O | --Optimize", "Optimize assembly (experimental)", CommandOptionType.NoValue);
+            CommandOption configFile = commandLine.Option("-c | --Configuration <file.conf>", "Machine configuration file", CommandOptionType.SingleValue);
             commandLine.HelpOption("-? | -h | --Help");
             commandLine.OnExecute(() =>
             {
@@ -71,6 +74,11 @@ namespace Assembler
                             Console.WriteLine("Unknown target: \"{0}\". Aborting.", target.Value());
                             Environment.Exit(1);
                         }
+                    }
+                    if (configFile.HasValue())
+                    {
+                        configExists = true;
+                        config = CodeIO.LoadConfig(configFile.Value());
                     }
                     optimize = optimization.HasValue();
                     links = libraries.Value();

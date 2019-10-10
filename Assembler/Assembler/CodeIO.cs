@@ -1,11 +1,8 @@
-﻿using System;
+﻿using Opcode;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using AST;
-using Opcode;
 
 namespace Assembler
 {
@@ -28,6 +25,31 @@ namespace Assembler
             }
         }
 
+        public static string[][] LoadConfig(string path)
+        {
+            try
+            {
+                string[] configLines = File.ReadAllLines(path);
+                string[][] parsed;
+                var parsedLines = new List<string[]>();
+                string[] delimeters = { " ", "=" };
+                foreach (var line in configLines)
+                {
+                    parsedLines.Add(line.Split(delimeters, StringSplitOptions.RemoveEmptyEntries));
+                }
+                parsed = parsedLines.ToArray();
+                return parsed;
+            }
+            catch (IOException e)
+            {
+                if (!File.Exists(path))
+                {
+                    Console.WriteLine("Configuration file not found, IOException: {0}", e.Source);
+                }
+                throw;
+            }
+        }
+
         public static void WriteSource(Binary assembly)
         {
             Utilities.Utilities.VerbouseOut("SOURCE WRITER", "Attempt to save into " + Program.outputFile + "...");
@@ -35,12 +57,13 @@ namespace Assembler
             {
                 Binary binary = assembly;
                 string[] code = new string[binary.Count];
-                for (int i = 0; i<binary.Count; i++)
+                for (int i = 0; i < binary.Count; i++)
                 {
                     if (binary[i] is Jmp)
                     {
                         code[i] = ((Jmp)binary[i]).ToString();
-                    } else if (binary[i] is Jnc)
+                    }
+                    else if (binary[i] is Jnc)
                     {
                         code[i] = ((Jnc)binary[i]).ToString();
                     }
@@ -51,7 +74,8 @@ namespace Assembler
                     }
                 }
                 File.WriteAllLines(Program.outputFile, code);
-            } catch (IOException e)
+            }
+            catch (IOException e)
             {
                 Console.WriteLine("Shit happens: " + e.Source);
             }
@@ -71,7 +95,7 @@ namespace Assembler
             }
             catch (IOException e)
             {
-                Console.WriteLine("Shit happens: "+e.Source);
+                Console.WriteLine("Shit happens: " + e.Source);
             }
         }
         private static string[][] SplitCode(string[] lines)
@@ -102,7 +126,7 @@ namespace Assembler
                     if (line[0] == "#include")
                     {
                         macroses = macroses.Concat(LoadMacros(line[1])).GroupBy(i => i.Key).ToDictionary(group => group.Key, group => group.First().Value);
-                    } 
+                    }
                     if (line[0] == "#macro")
                     {
                         macrosName = line[1];
@@ -134,7 +158,8 @@ namespace Assembler
                     }
 
                 }
-            } catch (IOException e)
+            }
+            catch (IOException e)
             {
                 if (!File.Exists(path))
                 {
@@ -152,17 +177,18 @@ namespace Assembler
                 string[] pextCode = File.ReadAllLines(path);
                 pextCode = Assembly.ClearCode(pextCode);
                 Pext newOpcode;
-                for (int i = 0; i<pextCode.Length; i++)
+                for (int i = 0; i < pextCode.Length; i++)
                 {
                     newOpcode = new Pext(pextCode[i], mountPoint);
                     //Finish LoadPext
                     loadedPexts.Add(newOpcode.GetOpcode(), newOpcode);
                 }
-            } catch (IOException e)
+            }
+            catch (IOException e)
             {
                 if (!File.Exists(path))
                 {
-                    Console.WriteLine("Pext not found, IOException: {0}", e.Source);
+                    Console.WriteLine("Pext <" + path + "> not found, IOException: {0}", e.Source);
                 }
             }
             return loadedPexts;

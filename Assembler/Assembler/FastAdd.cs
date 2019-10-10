@@ -13,7 +13,7 @@ namespace Opcode
         }
         public FastAdd(string value)
         {
-            if (value.Length > 2)
+            if (value.Length > 2 && value[0] != '-')
             {
                 if (value[1] == 'x' && value[0] != '\'')
                 {
@@ -30,6 +30,9 @@ namespace Opcode
                         if (value[0] == '\'' && value[value.Length - 1] == '\'' && value.Length == 3)
                         {
                             this.value = Encoding.ASCII.GetBytes(value)[1];
+                        } else
+                        {
+                            this.value = Convert.ToInt16(value, 10) & 0b11111111;
                         }
                     }
                     else

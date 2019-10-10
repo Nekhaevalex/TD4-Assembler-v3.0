@@ -75,9 +75,12 @@ namespace AST
                 toRet += opcode.Arg2.ToString();
                 toRet += " ";
             }
-            if (opcode.FastAdd != null)
+            if (opcode.Name != "jmp" && opcode.Name != "jnc")
             {
-                toRet += opcode.FastAdd.ToString();
+                if (opcode.FastAdd != null)
+                {
+                    toRet += opcode.FastAdd.ToString();
+                }
             }
             return toRet;
         }

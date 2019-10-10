@@ -42,5 +42,24 @@ namespace Utilities
             }
             Console.ResetColor();
         }
+
+        public static void Message(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("MESSAGE:" + message);
+            Console.ResetColor();
+        }
+        public static void Warning(string process, string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("Warning:" + "[" + process + "]: " + message);
+            Console.ResetColor();
+        }
+        public static void Error(string process, string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("ERROR in [" + process + "] " + message);
+            Console.ResetColor();
+        }
     }
 }
