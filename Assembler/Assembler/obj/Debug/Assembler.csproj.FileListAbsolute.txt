@@ -24,7 +24,6 @@ C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\bin\Debug\
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\bin\Debug\Microsoft.Extensions.CommandLineUtils.dll
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\bin\Debug\Microsoft.Extensions.CommandLineUtils.xml
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\Assembler.csprojAssemblyReference.cache
-C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\Assembler.csproj.CoreCompileInputs.cache
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\Assembler.csproj.CopyComplete
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\Assembler.exe
 C:\Users\nekha\OneDrive\GitHub\TD4-Assembler-v3.0\Assembler\Assembler\obj\Debug\Assembler.pdb
